@@ -3,3 +3,4 @@ Push.js is a lightweight mobile and desktop-friendly alternative to Turbolinks w
 
 Standalone fork by [Liam Edwards-Playne](http://liamz.co) of Push.js from the (no longer maintained) Ratchet framework, with the following additions:
  - desktop support
+ - Fires `page:fetch`, `page:change` and `page:replace` events like Turbolinks, which facilitates use with [NProgress](http://ricostacruz.com/nprogress/).
