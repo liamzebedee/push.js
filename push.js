@@ -1,10 +1,9 @@
 /* ========================================================================
- * Ratchet: push.js v2.0.2
- * http://goratchet.com/components#push
+ * Push.js v2.0.3
  * ========================================================================
- * inspired by @defunkt's jquery.pjax.js
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
+ * inspired by @defunkt's jquery.pjax.js and a fork of Ratchet's push.js
+ * Copyright 2014 Connor Sears, Liam Edwards-Playne
+ * Licensed under MIT (https://github.com/liamzebedee/push.js/blob/master/LICENSE)
  * ======================================================================== */
 
 /* global _gaq: true */
@@ -22,10 +21,9 @@
   var maxCacheLength = 20;
   var cacheMapping   = sessionStorage;
   var domCache       = {};
-  // Change these to unquoted camelcase in the next major version bump
   var transitionMap  = {
-    'slide-in'  : 'slide-out',
-    'slide-out' : 'slide-in',
+    slideIn  : 'slide-out',
+    slideOut : 'slide-in',
     fade     : 'fade'
   };
 
@@ -43,6 +41,7 @@
     }
     cacheMapping[data.id] = JSON.stringify(data);
     window.history.replaceState(data.id, data.title, data.url);
+    domCache[data.id] = document.body.cloneNode(true);
   };
 
   var cachePush = function () {
@@ -60,7 +59,7 @@
       delete cacheMapping[cacheBackStack.shift()];
     }
 
-    window.history.pushState(null, '', getCached(PUSH.id).url);
+    window.history.pushState(null, '', cacheMapping[PUSH.id].url);
 
     cacheMapping.cacheForwardStack = JSON.stringify(cacheForwardStack);
     cacheMapping.cacheBackStack    = JSON.stringify(cacheBackStack);
@@ -191,9 +190,7 @@
     swapContent(
       (activeObj.contents || activeDom).cloneNode(true),
       document.querySelector('.content'),
-      transition, function () {
-        triggerStateChange();
-      }
+      transition
     );
 
     PUSH.id = id;
@@ -241,11 +238,9 @@
         url        : window.location.href,
         title      : document.title,
         timeout    : options.timeout,
-        transition : options.transition
+        transition : null
       });
     }
-
-    cacheCurrentContent();
 
     if (options.timeout) {
       options._timeout = setTimeout(function () {  xhr.abort('timeout'); }, options.timeout);
@@ -257,10 +252,6 @@
       cachePush();
     }
   };
-
-  function cacheCurrentContent() {
-    domCache[PUSH.id] = document.body.cloneNode(true);
-  }
 
 
   // Main XHR handlers
@@ -484,7 +475,10 @@
   window.addEventListener('touchstart', function () { isScrolling = false; });
   window.addEventListener('touchmove', function () { isScrolling = true; });
   window.addEventListener('touchend', touchend);
-  window.addEventListener('click', function (e) { if (getTarget(e)) {e.preventDefault();} });
+  window.addEventListener('click', function (e) {
+    touchend(e);
+    if (getTarget(e)) {e.preventDefault();} 
+  });
   window.addEventListener('popstate', popstate);
   window.PUSH = PUSH;
 
